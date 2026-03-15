@@ -538,8 +538,13 @@
       }
     }
   </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
 </head>
 <body>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  
   <div class="container">
     <div class="header">
       <h1>
@@ -915,8 +920,9 @@
     var currentOwnerFilter = '';
 
     // 初始化
-    document.addEventListener('DOMContentLoaded', function() {
-      loadData();
+    document.addEventListener('DOMContentLoaded', async function() {
+      initSupabase();
+      await loadData();
       populateOwnerFilter();
       renderTable();
       updateStats();
@@ -934,16 +940,25 @@
       });
     });
 
-    // 加载数据
-    function loadData() {
-      console.log('Loading data from localStorage...');
+    // 加载数据（优先从 Supabase，回退到 localStorage）
+    async function loadData() {
+      console.log('Loading data...');
       try {
-        // 直接从localStorage读取并解析
-        const storedProducts = localStorage.getItem('products');
-        console.log('Stored products:', storedProducts);
+        // 首先尝试从 Supabase 加载
+        if (isSupabaseConfigured()) {
+          try {
+            allProducts = await getAllProducts();
+            console.log('Loaded from Supabase:', allProducts);
+          } catch (e) {
+            console.error('从 Supabase 加载失败，回退到 localStorage:', e);
+            // 回退到 localStorage
+            allProducts = JSON.parse(localStorage.getItem('products')) || {};
+          }
+        } else {
+          // 未配置 Supabase，使用 localStorage
+          allProducts = JSON.parse(localStorage.getItem('products')) || {};
+        }
         
-        // 确保allProducts是一个对象
-        allProducts = JSON.parse(storedProducts) || {};
         console.log('Parsed allProducts:', allProducts);
         console.log('Type:', typeof allProducts);
         
@@ -965,8 +980,6 @@
                   ownerId: ownerId
                 });
               });
-              // 保存带有修改时间的数据
-              localStorage.setItem('products', JSON.stringify(allProducts));
             }
           });
         }
@@ -1050,14 +1063,24 @@
       });
     }
 
-    // 保存数据
-    function saveData() {
+    // 保存数据（同时保存到 Supabase 和 localStorage）
+    async function saveData() {
       localStorage.setItem('products', JSON.stringify(allProducts));
+      
+      if (isSupabaseConfigured()) {
+        try {
+          for (const [ownerId, ownerProducts] of Object.entries(allProducts)) {
+            await saveProducts(ownerId, ownerProducts);
+          }
+        } catch (e) {
+          console.error('保存到 Supabase 失败:', e);
+        }
+      }
     }
 
     // 刷新数据
-    function refreshData() {
-      loadData();
+    async function refreshData() {
+      await loadData();
       populateOwnerFilter();
       renderTable();
       updateStats();
@@ -1216,7 +1239,7 @@
     }
 
     // 保存编辑
-    function saveEdit(event) {
+    async function saveEdit(event) {
       event.preventDefault();
 
       const id = parseInt(document.getElementById('editProductId').value);
@@ -1254,8 +1277,8 @@
           updatedAt: new Date().toISOString()
         };
 
-        saveData();
-        loadData();
+        await saveData();
+        await loadData();
         renderTable();
         updateStats();
         closeModal();
@@ -1267,14 +1290,14 @@
     }
 
     // 删除商品
-    function deleteProduct(id, ownerId) {
+    async function deleteProduct(id, ownerId) {
       if (confirm('确定要删除这个商品吗？')) {
         const productToDelete = allProducts[ownerId].find(p => p.id === id);
         const productName = productToDelete ? productToDelete.name : '未知商品';
         
         allProducts[ownerId] = allProducts[ownerId].filter(p => p.id !== id);
-        saveData();
-        loadData();
+        await saveData();
+        await loadData();
         renderTable();
         updateStats();
         showToast('商品已删除', 'success');
@@ -1425,8 +1448,8 @@
     });
 
     // 打开业主账号管理
-    function openOwnerManagement() {
-      displayOwners();
+    async function openOwnerManagement() {
+      await displayOwners();
       document.getElementById('ownerManagementModal').classList.add('show');
     }
 
@@ -1438,7 +1461,7 @@
     }
 
     // 添加业主
-    function addOwner() {
+    async function addOwner() {
       const ownerId = document.getElementById('newOwnerId').value.trim();
       const password = document.getElementById('newOwnerPassword').value;
       
@@ -1448,7 +1471,17 @@
       }
       
       // 获取现有业主信息
-      const ownerCredentials = JSON.parse(localStorage.getItem('ownerCredentials')) || {};
+      let ownerCredentials = {};
+      if (isSupabaseConfigured()) {
+        try {
+          ownerCredentials = await getOwnerCredentials();
+        } catch (e) {
+          console.error('从 Supabase 获取业主失败:', e);
+          ownerCredentials = JSON.parse(localStorage.getItem('ownerCredentials')) || {};
+        }
+      } else {
+        ownerCredentials = JSON.parse(localStorage.getItem('ownerCredentials')) || {};
+      }
       
       // 检查业主ID是否已存在
       if (ownerCredentials[ownerId]) {
@@ -1463,9 +1496,18 @@
       ownerCredentials[ownerId] = passwordHash;
       localStorage.setItem('ownerCredentials', JSON.stringify(ownerCredentials));
       
+      if (isSupabaseConfigured()) {
+        try {
+          await addOwnerCredential(ownerId, passwordHash);
+        } catch (e) {
+          console.error('保存到 Supabase 失败:', e);
+        }
+      }
+      
       // 初始化商品数据
-      const allProducts = JSON.parse(localStorage.getItem('products')) || {};
-      allProducts[ownerId] = [];
+      if (!allProducts[ownerId]) {
+        allProducts[ownerId] = [];
+      }
       localStorage.setItem('products', JSON.stringify(allProducts));
       
       showToast('业主添加成功');
@@ -1480,17 +1522,24 @@
     }
 
     // 删除业主
-    function deleteOwner(ownerId) {
+    async function deleteOwner(ownerId) {
       if (confirm(`确定要删除业主 ${ownerId} 吗？`)) {
         // 获取现有业主信息
-        const ownerCredentials = JSON.parse(localStorage.getItem('ownerCredentials')) || {};
+        let ownerCredentials = JSON.parse(localStorage.getItem('ownerCredentials')) || {};
         
         // 删除业主
         delete ownerCredentials[ownerId];
         localStorage.setItem('ownerCredentials', JSON.stringify(ownerCredentials));
         
+        if (isSupabaseConfigured()) {
+          try {
+            await deleteOwnerCredential(ownerId);
+          } catch (e) {
+            console.error('从 Supabase 删除业主失败:', e);
+          }
+        }
+        
         // 删除业主商品数据
-        const allProducts = JSON.parse(localStorage.getItem('products')) || {};
         delete allProducts[ownerId];
         localStorage.setItem('products', JSON.stringify(allProducts));
         
@@ -1505,8 +1554,19 @@
     }
 
     // 显示现有业主
-    function displayOwners() {
-      const ownerCredentials = JSON.parse(localStorage.getItem('ownerCredentials')) || {};
+    async function displayOwners() {
+      let ownerCredentials = {};
+      if (isSupabaseConfigured()) {
+        try {
+          ownerCredentials = await getOwnerCredentials();
+        } catch (e) {
+          console.error('从 Supabase 获取业主失败:', e);
+          ownerCredentials = JSON.parse(localStorage.getItem('ownerCredentials')) || {};
+        }
+      } else {
+        ownerCredentials = JSON.parse(localStorage.getItem('ownerCredentials')) || {};
+      }
+      
       const ownersList = document.getElementById('ownersList');
       
       if (Object.keys(ownerCredentials).length === 0) {
@@ -1538,27 +1598,27 @@
     // 日志相关函数
     
     // 记录登录日志
-    function logLogin() {
+    async function logLogin() {
       const log = {
         type: 'login',
         timestamp: new Date().toISOString(),
         action: '管理员登录后台管理页面'
       };
-      saveLog(log);
+      await saveLog(log);
     }
 
     // 记录修改日志
-    function logModify(action) {
+    async function logModify(action) {
       const log = {
         type: 'modify',
         timestamp: new Date().toISOString(),
         action: action
       };
-      saveLog(log);
+      await saveLog(log);
     }
 
-    // 保存日志到localStorage
-    function saveLog(log) {
+    // 保存日志（同时保存到 Supabase 和 localStorage）
+    async function saveLog(log) {
       let logs = JSON.parse(localStorage.getItem('adminLogs')) || [];
       logs.push(log);
       // 限制日志数量，最多保存100条
@@ -1566,11 +1626,19 @@
         logs = logs.slice(-100);
       }
       localStorage.setItem('adminLogs', JSON.stringify(logs));
+      
+      if (isSupabaseConfigured()) {
+        try {
+          await addAdminLog(log);
+        } catch (e) {
+          console.error('保存日志到 Supabase 失败:', e);
+        }
+      }
     }
 
     // 打开日志模态框
-    function openLogModal() {
-      displayLogs();
+    async function openLogModal() {
+      await displayLogs();
       document.getElementById('logModal').classList.add('show');
     }
 
@@ -1580,9 +1648,20 @@
     }
 
     // 显示日志
-    function displayLogs(filterType = 'all') {
+    async function displayLogs(filterType = 'all') {
       const logContent = document.getElementById('logContent');
-      const logs = JSON.parse(localStorage.getItem('adminLogs')) || [];
+      let logs = [];
+      
+      if (isSupabaseConfigured()) {
+        try {
+          logs = await getAdminLogs();
+        } catch (e) {
+          console.error('从 Supabase 获取日志失败:', e);
+          logs = JSON.parse(localStorage.getItem('adminLogs')) || [];
+        }
+      } else {
+        logs = JSON.parse(localStorage.getItem('adminLogs')) || [];
+      }
       
       // 过滤日志
       const filteredLogs = filterType === 'all' ? logs : logs.filter(log => log.type === filterType);
@@ -1624,10 +1703,19 @@
     }
 
     // 清空日志
-    function clearLogs() {
+    async function clearLogs() {
       if (confirm('确定要清空所有日志吗？')) {
         localStorage.removeItem('adminLogs');
-        displayLogs();
+        
+        if (isSupabaseConfigured()) {
+          try {
+            await clearAdminLogs();
+          } catch (e) {
+            console.error('清空 Supabase 日志失败:', e);
+          }
+        }
+        
+        await displayLogs();
         showToast('日志已清空', 'success');
       }
     }

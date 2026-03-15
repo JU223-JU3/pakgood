@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>配置 Supabase - 选品系统</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..90&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-image: url('黑色背景.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .config-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 2rem;
+      padding: 3rem;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .config-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .config-header h1 {
+      font-size: 1.875rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 0.5rem;
+    }
+
+    .config-header p {
+      color: #64748b;
+      font-size: 0.875rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 0.75rem;
+      font-size: 0.875rem;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 1rem;
+      border: none;
+      border-radius: 0.75rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #1e293b;
+      border: 1px solid #e2e8f0;
+      margin-top: 1rem;
+    }
+
+    .btn-secondary:hover {
+      background: #f8fafc;
+    }
+
+    .success-message {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #16a34a;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .success-message.show {
+      display: flex;
+    }
+
+    .error-message {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .error-message.show {
+      display: flex;
+    }
+
+    .info-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 1.25rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-box h3 {
+      font-size: 1rem;
+      color: #1e40af;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .info-box ol {
+      margin-left: 1.25rem;
+      color: #374151;
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+
+    .info-box li {
+      margin-bottom: 0.5rem;
+    }
+
+    .config-status {
+      padding: 1rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .config-status.configured {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #16a34a;
+    }
+
+    .config-status.not-configured {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .config-container {
+        padding: 2rem 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="config-container">
+    <div class="config-header">
+      <h1><i class="fas fa-database"></i> 配置 Supabase</h1>
+      <p>填写您的 Supabase 项目信息以启用数据同步</p>
+    </div>
+
+    <div id="configStatus" class="config-status not-configured">
+      <i class="fas fa-info-circle" style="font-size: 1.5rem;"></i>
+      <span id="configStatusText">Supabase 未配置</span>
+    </div>
+
+    <div id="successMsg" class="success-message">
+      <i class="fas fa-check-circle"></i>
+      <span>配置保存成功！</span>
+    </div>
+
+    <div id="errorMsg" class="error-message">
+      <i class="fas fa-exclamation-circle"></i>
+      <span id="errorText">请填写所有字段</span>
+    </div>
+
+    <div class="info-box">
+      <h3><i class="fas fa-lightbulb"></i> 如何获取 Supabase 配置信息？</h3>
+      <ol>
+        <li>访问 <a href="https://supabase.com" target="_blank" style="color: #667eea;">supabase.com</a> 并登录您的账号</li>
+        <li>创建一个新项目或选择现有项目</li>
+        <li>进入项目设置（Project Settings）→ API</li>
+        <li>复制 "Project URL" 和 "anon public" 密钥</li>
+      </ol>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">
+        <i class="fas fa-link"></i> Supabase Project URL
+      </label>
+      <input type="url" id="supabaseUrl" class="form-input" placeholder="https://xxx.supabase.co">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">
+        <i class="fas fa-key"></i> Supabase Anon Key
+      </label>
+      <input type="text" id="supabaseKey" class="form-input" placeholder="eyJhbGciOi...">
+    </div>
+
+    <button class="btn btn-primary" onclick="saveConfig()">
+      <i class="fas fa-save"></i>
+      保存配置
+    </button>
+
+    <button class="btn btn-secondary" onclick="testConnection()">
+      <i class="fas fa-plug"></i>
+      测试连接
+    </button>
+
+    <button class="btn btn-secondary" onclick="migrateData()">
+      <i class="fas fa-exchange-alt"></i>
+      从 localStorage 迁移数据
+    </button>
+
+    <button class="btn btn-secondary" onclick="goToLogin()">
+      <i class="fas fa-arrow-left"></i>
+      返回登录页面
+    </button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      loadConfig();
+      checkConfigStatus();
+    });
+
+    function loadConfig() {
+      const savedUrl = localStorage.getItem('SUPABASE_URL');
+      const savedKey = localStorage.getItem('SUPABASE_ANON_KEY');
+      
+      if (savedUrl) {
+        document.getElementById('supabaseUrl').value = savedUrl;
+      }
+      if (savedKey) {
+        document.getElementById('supabaseKey').value = savedKey;
+      }
+    }
+
+    function checkConfigStatus() {
+      const statusEl = document.getElementById('configStatus');
+      const statusTextEl = document.getElementById('configStatusText');
+      
+      if (isSupabaseConfigured()) {
+        statusEl.className = 'config-status configured';
+        statusTextEl.textContent = 'Supabase 已配置';
+      } else {
+        statusEl.className = 'config-status not-configured';
+        statusTextEl.textContent = 'Supabase 未配置';
+      }
+    }
+
+    function showError(message) {
+      document.getElementById('errorText').textContent = message;
+      document.getElementById('errorMsg').classList.add('show');
+      document.getElementById('successMsg').classList.remove('show');
+    }
+
+    function showSuccess() {
+      document.getElementById('errorMsg').classList.remove('show');
+      document.getElementById('successMsg').classList.add('show');
+    }
+
+    function hideMessages() {
+      document.getElementById('errorMsg').classList.remove('show');
+      document.getElementById('successMsg').classList.remove('show');
+    }
+
+    function saveConfig() {
+      hideMessages();
+      
+      const url = document.getElementById('supabaseUrl').value.trim();
+      const key = document.getElementById('supabaseKey').value.trim();
+      
+      if (!url) {
+        showError('请输入 Supabase Project URL');
+        return;
+      }
+      
+      if (!key) {
+        showError('请输入 Supabase Anon Key');
+        return;
+      }
+      
+      try {
+        new URL(url);
+      } catch {
+        showError('请输入有效的 URL');
+        return;
+      }
+      
+      setSupabaseConfig(url, key);
+      checkConfigStatus();
+      showSuccess();
+    }
+
+    async function testConnection() {
+      hideMessages();
+      
+      if (!isSupabaseConfigured()) {
+        showError('请先保存配置');
+        return;
+      }
+      
+      try {
+        const supabase = initSupabase();
+        if (!supabase) {
+          showError('Supabase 初始化失败');
+          return;
+        }
+        
+        const { data, error } = await supabase
+          .from('owner_credentials')
+          .select('count', { count: 'exact', head: true });
+        
+        if (error) {
+          if (error.code === '42P01') {
+            showError('表不存在，请先在 Supabase 中执行 SQL 脚本创建表');
+          } else {
+            showError('连接失败: ' + error.message);
+          }
+          return;
+        }
+        
+        showSuccess();
+        document.getElementById('successMsg').querySelector('span').textContent = '连接成功！';
+      } catch (e) {
+        showError('连接异常: ' + e.message);
+      }
+    }
+
+    async function migrateData() {
+      hideMessages();
+      
+      if (!isSupabaseConfigured()) {
+        showError('请先保存配置');
+        return;
+      }
+      
+      if (!confirm('确定要从 localStorage 迁移数据到 Supabase 吗？这可能会覆盖 Supabase 中的现有数据。')) {
+        return;
+      }
+      
+      try {
+        await migrateFromLocalStorage();
+        showSuccess();
+        document.getElementById('successMsg').querySelector('span').textContent = '数据迁移成功！';
+      } catch (e) {
+        showError('迁移失败: ' + e.message);
+      }
+    }
+
+    function goToLogin() {
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>

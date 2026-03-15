@@ -621,8 +621,13 @@
       background: #eff6ff;
     }
   </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
 </head>
 <body>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  
 <div class="catalog">
   <!-- 头部 -->
   <div class="catalog-header">
@@ -784,6 +789,9 @@
 
 <script>
   (function() {
+    // 初始化 Supabase
+    initSupabase();
+    
     // 获取当前登录的业主ID
     const currentOwnerId = localStorage.getItem('currentOwnerId');
     
@@ -793,28 +801,82 @@
       return;
     }
 
-    // 验证业主ID是否存在
-    const ownerCredentials = JSON.parse(localStorage.getItem('ownerCredentials')) || {};
-    if (!ownerCredentials[currentOwnerId]) {
-      localStorage.removeItem('currentOwnerId');
-      window.location.href = 'index.html';
-      return;
+    // --- 商品数据 ---
+    let allProducts = {};
+    let products = [];
+    
+    // 加载数据（优先从 Supabase，回退到 localStorage）
+    async function loadData() {
+      if (isSupabaseConfigured()) {
+        try {
+          allProducts = await getAllProducts();
+          if (!allProducts[currentOwnerId]) {
+            allProducts[currentOwnerId] = [];
+          }
+          products = allProducts[currentOwnerId];
+          return;
+        } catch (e) {
+          console.error('从 Supabase 加载失败，回退到 localStorage:', e);
+        }
+      }
+      
+      // 回退到 localStorage
+      allProducts = JSON.parse(localStorage.getItem('products')) || {};
+      if (!allProducts[currentOwnerId]) {
+        allProducts[currentOwnerId] = [];
+        localStorage.setItem('products', JSON.stringify(allProducts));
+      }
+      products = allProducts[currentOwnerId];
     }
 
-    // --- 商品数据 (包含 link 字段) ---
-    let allProducts = JSON.parse(localStorage.getItem('products')) || {};
-    // 确保当前业主的数据存在
-    if (!allProducts[currentOwnerId]) {
-      allProducts[currentOwnerId] = [];
-      localStorage.setItem('products', JSON.stringify(allProducts));
-    }
-    let products = allProducts[currentOwnerId];
-
-    // 保存数据到 localStorage
-    function saveData() {
+    // 保存数据（同时保存到 Supabase 和 localStorage）
+    async function saveData() {
       allProducts[currentOwnerId] = products;
+      
+      // 保存到 localStorage
       localStorage.setItem('products', JSON.stringify(allProducts));
+      
+      // 保存到 Supabase
+      if (isSupabaseConfigured()) {
+        try {
+          await saveProducts(currentOwnerId, products);
+        } catch (e) {
+          console.error('保存到 Supabase 失败:', e);
+        }
+      }
     }
+    
+    // 初始化时加载数据
+    loadData().then(async () => {
+      // 验证业主ID是否存在
+      let ownerValid = false;
+      
+      if (isSupabaseConfigured()) {
+        try {
+          const credentials = await getOwnerCredentials();
+          ownerValid = credentials[currentOwnerId] !== undefined;
+        } catch (e) {
+          console.error('验证业主失败:', e);
+        }
+      }
+      
+      if (!ownerValid) {
+        const ownerCredentials = JSON.parse(localStorage.getItem('ownerCredentials')) || {};
+        ownerValid = ownerCredentials[currentOwnerId] !== undefined;
+      }
+      
+      if (!ownerValid) {
+        localStorage.removeItem('currentOwnerId');
+        window.location.href = 'index.html';
+        return;
+      }
+      
+      // 显示当前业主ID
+      document.getElementById('currentOwnerId').textContent = currentOwnerId;
+      
+      // 渲染列表
+      renderList();
+    });
 
     // --- DOM 元素 ---
     const listContainer = document.getElementById('productsList');
@@ -920,23 +982,23 @@
     }
 
     // --- 切换勾选状态 ---
-    function toggleCheck(productId) {
+    async function toggleCheck(productId) {
       const product = products.find(p => p.id === productId);
       if (product) {
         product.checked = !product.checked;
         product.updatedAt = new Date().toISOString();
-        saveData();
+        await saveData();
         renderList();  // 重新渲染以更新勾选图标
       }
     }
 
     // --- 更新商品链接 (由输入框的input事件触发) ---
-    function updateProductLink(productId, newLink) {
+    async function updateProductLink(productId, newLink) {
       const product = products.find(p => p.id === productId);
       if (product) {
         product.link = newLink;
         product.updatedAt = new Date().toISOString();
-        saveData();
+        await saveData();
         // 不需要重新渲染，只更新数据，保持输入框状态。但为了其他联动可以不重绘
         // 但是我们使用了渲染完全替换，如果每次输入都重绘会导致输入框失焦。
         // 因此需要避免在input事件中重新渲染。改为仅更新数据，不重新渲染。
@@ -947,9 +1009,9 @@
     }
 
     // --- 删除商品 ---
-    function deleteProduct(productId) {
+    async function deleteProduct(productId) {
       products = products.filter(p => p.id !== productId);
-      saveData();
+      await saveData();
       renderList();
     }
 
@@ -967,7 +1029,7 @@
     }
 
     // --- 保存新商品 (名称 + 可选链接) ---
-    function addNewProduct() {
+    async function addNewProduct() {
       const name = newName.value.trim();
       if (!name) {
         alert('请填写商品名称');
@@ -995,19 +1057,19 @@
         image: image,
         notes: notes
       });
-      saveData();
+      await saveData();
       renderList();
       resetAndHideAddCard();
     }
 
     // --- 事件监听 (代理) ---
     // 由于输入框需要实时保存，我们监听input事件，但避免重新渲染。
-    listContainer.addEventListener('input', function(e) {
+    listContainer.addEventListener('input', async function(e) {
       const target = e.target;
       if (target.classList.contains('link-input')) {
         const productId = Number(target.dataset.linkFor);
         if (!isNaN(productId)) {
-          updateProductLink(productId, target.value);
+          await updateProductLink(productId, target.value);
           
           // 动态显示或隐藏飞机图标按钮
           const linkValue = target.value.trim();
@@ -1040,7 +1102,7 @@
     });
 
     // 点击事件（勾选图标、删除按钮）
-    listContainer.addEventListener('click', function(e) {
+    listContainer.addEventListener('click', async function(e) {
       const target = e.target;
 
       // 勾选图标
@@ -1048,7 +1110,7 @@
         e.preventDefault();
         e.stopPropagation();
         const prodId = Number(target.dataset.productId);
-        toggleCheck(prodId);
+        await toggleCheck(prodId);
         return;
       }
 
@@ -1061,7 +1123,7 @@
         if (!listItem) return;
         const prodId = Number(listItem.dataset.productId);
         if (confirm('移除此商品？')) {
-          deleteProduct(prodId);
+          await deleteProduct(prodId);
         }
         return;
       }
@@ -1082,10 +1144,12 @@
 
     cancelAdd.addEventListener('click', resetAndHideAddCard);
 
-    saveBtn.addEventListener('click', addNewProduct);
+    saveBtn.addEventListener('click', async function() {
+      await addNewProduct();
+    });
 
     // 批量添加商品
-    window.batchAddProducts = function() {
+    window.batchAddProducts = async function() {
       const batchText = document.getElementById('batchProductNames').value.trim();
       if (!batchText) {
         alert('请输入商品名称');
@@ -1114,7 +1178,7 @@
         });
       });
 
-      saveData();
+      await saveData();
       renderList();
       closeBatchAddModal();
       alert(`成功添加 ${productNames.length} 个商品`);
@@ -1174,7 +1238,7 @@
       document.getElementById('editModal').classList.remove('show');
     };
 
-    window.saveProductEdit = function() {
+    window.saveProductEdit = async function() {
       const productId = parseInt(document.getElementById('editProductId').value);
       const product = products.find(p => p.id === productId);
       if (!product) return;
@@ -1197,7 +1261,7 @@
       product.updatedAt = new Date().toISOString();
 
       // 保存数据并重新渲染
-      saveData();
+      await saveData();
       console.log('保存商品编辑，图片URL:', product.image);
       renderList();
       closeEditModal();

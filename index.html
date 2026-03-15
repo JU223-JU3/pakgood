@@ -338,12 +338,22 @@
       }
     }
   </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
 </head>
 <body>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  
   <div class="login-container">
     <div class="login-header">
       <h1>欢迎访问</h1>
       <p>请选择您的身份进入系统</p>
+      <div style="margin-top: 1rem;">
+        <button onclick="window.location.href='配置Supabase.html'" style="background: transparent; border: 1px dashed #cbd5e1; color: #64748b; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-size: 0.875rem;">
+          <i class="fas fa-cog"></i> 配置 Supabase
+        </button>
+      </div>
     </div>
 
     <div class="role-selector">
@@ -449,6 +459,11 @@
       username: 'admin',
       passwordHash: '21232f297a57a5a743894a0e4a801fc3'
     };
+
+    // 初始化 Supabase
+    document.addEventListener('DOMContentLoaded', function() {
+      initSupabase();
+    });
 
     function md5(string) {
       function rotateLeft(lValue, iShiftBits) {
@@ -667,7 +682,7 @@
       window.location.href = '列表清单.html';
     }
 
-    function loginAsOwner() {
+    async function loginAsOwner() {
       const ownerId = document.getElementById('ownerId').value.trim();
       const password = document.getElementById('ownerPassword').value;
       
@@ -683,19 +698,30 @@
         return;
       }
 
-      // 获取业主信息
-      const ownerCredentials = JSON.parse(localStorage.getItem('ownerCredentials')) || {};
-      
-      // 检查业主是否存在
-      if (!ownerCredentials[ownerId]) {
-        showError('业主ID或密码错误');
-        shakeForm();
-        return;
+      const passwordHash = md5(password);
+      let isValid = false;
+
+      // 首先尝试使用 Supabase
+      if (isSupabaseConfigured()) {
+        try {
+          const credentials = await getOwnerCredentials();
+          if (credentials[ownerId] === passwordHash) {
+            isValid = true;
+          }
+        } catch (e) {
+          console.error('Supabase 验证失败，回退到 localStorage:', e);
+        }
       }
 
-      // 验证密码
-      const passwordHash = md5(password);
-      if (ownerCredentials[ownerId] !== passwordHash) {
+      // 如果 Supabase 不可用或验证失败，回退到 localStorage
+      if (!isValid) {
+        const ownerCredentials = JSON.parse(localStorage.getItem('ownerCredentials')) || {};
+        if (ownerCredentials[ownerId] === passwordHash) {
+          isValid = true;
+        }
+      }
+
+      if (!isValid) {
         showError('业主ID或密码错误');
         shakeForm();
         return;
