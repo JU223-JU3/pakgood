@@ -16,7 +16,10 @@
     }
 
     body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-image: url('黑色背景.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
       font-family: "Inter", system-ui, -apple-system, sans-serif;
       min-height: 100vh;
       display: flex;
@@ -246,22 +249,7 @@
       display: flex;
     }
 
-    .owner-section {
-      text-align: center;
-      padding: 2rem 0;
-    }
 
-    .owner-section h3 {
-      font-size: 1.25rem;
-      color: #1e293b;
-      margin-bottom: 0.5rem;
-    }
-
-    .owner-section p {
-      color: #64748b;
-      font-size: 0.875rem;
-      margin-bottom: 1.5rem;
-    }
 
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
@@ -273,13 +261,80 @@
       animation: shake 0.5s ease-in-out;
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
       .login-container {
         padding: 2rem 1.5rem;
+        max-width: 100%;
       }
 
       .role-selector {
         flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .login-header h1 {
+        font-size: 1.5rem;
+      }
+
+      .form-input {
+        padding: 0.75rem 1rem;
+      }
+
+      .btn {
+        padding: 0.875rem;
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 1.5rem 1.25rem;
+      }
+
+      .login-header h1 {
+        font-size: 1.25rem;
+      }
+
+      .login-header p {
+        font-size: 0.75rem;
+      }
+
+      .role-card {
+        padding: 1.25rem;
+      }
+
+      .role-icon {
+        font-size: 1.75rem;
+      }
+
+      .role-title {
+        font-size: 0.9rem;
+      }
+
+      .role-desc {
+        font-size: 0.7rem;
+      }
+
+      .form-label {
+        font-size: 0.8rem;
+      }
+
+      .form-input {
+        padding: 0.625rem 0.875rem;
+        font-size: 0.8rem;
+      }
+
+      .form-input.with-icon {
+        padding-left: 2.5rem;
+      }
+
+      .btn {
+        padding: 0.75rem;
+        font-size: 0.75rem;
       }
     }
   </style>
@@ -318,18 +373,16 @@
       <span>登录成功，正在跳转...</span>
     </div>
 
-    <div id="ownerSection" class="owner-section">
-      <h3>业主入口</h3>
-      <p>请输入您的业主ID和密码</p>
+    <div id="ownerSection">
       <div class="form-group">
-        <label class="form-label">业主ID</label>
+        <label class="form-label">账号</label>
         <div class="input-wrapper">
-          <i class="fas fa-user-tag input-icon"></i>
+          <i class="fas fa-user input-icon"></i>
           <input 
             type="text" 
             id="ownerId" 
             class="form-input with-icon" 
-            placeholder="请输入业主ID"
+            placeholder="请输入账号"
             autocomplete="username"
           >
         </div>
@@ -345,17 +398,13 @@
             placeholder="请输入密码"
             autocomplete="current-password"
           >
-          <button type="button" class="toggle-password" onclick="togglePassword('ownerPassword', this)">
-            <i class="fas fa-eye"></i>
-          </button>
+          <i class="fas fa-eye password-toggle" onclick="togglePassword('ownerPassword', this)"></i>
         </div>
       </div>
-      <div class="card-actions" style="justify-content: center; margin-bottom: 1rem;">
-        <button class="btn btn-enter" onclick="loginAsOwner()">
-          <i class="fas fa-sign-in-alt"></i>
-          登录
-        </button>
-      </div>
+      <button class="btn btn-primary" onclick="loginAsOwner()">
+        <i class="fas fa-sign-in-alt"></i>
+        登录
+      </button>
     </div>
 
     <form id="adminForm" class="login-form" onsubmit="handleAdminLogin(event)">
@@ -704,6 +753,8 @@
 
     document.getElementById('username')?.addEventListener('input', hideMessages);
     document.getElementById('password')?.addEventListener('input', hideMessages);
+    document.getElementById('ownerId')?.addEventListener('input', hideMessages);
+    document.getElementById('ownerPassword')?.addEventListener('input', hideMessages);
   </script>
 </body>
 </html>
