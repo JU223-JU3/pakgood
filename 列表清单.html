@@ -683,7 +683,7 @@
     
     // 如果没有登录业主ID，跳转到登录页面
     if (!currentOwnerId) {
-      window.location.href = '登录.html';
+      window.location.href = 'index.html';
       return;
     }
 
@@ -691,7 +691,7 @@
     const ownerCredentials = JSON.parse(localStorage.getItem('ownerCredentials')) || {};
     if (!ownerCredentials[currentOwnerId]) {
       localStorage.removeItem('currentOwnerId');
-      window.location.href = '登录.html';
+      window.location.href = 'index.html';
       return;
     }
 
@@ -727,7 +727,7 @@
     window.logout = function() {
       if (confirm('确定要退出登录吗？')) {
         localStorage.removeItem('currentOwnerId');
-        window.location.href = '登录.html';
+        window.location.href = 'index.html';
       }
     };
 
