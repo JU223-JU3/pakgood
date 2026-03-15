@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Data Structure</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+    pre { background: #f0f0f0; padding: 10px; border-radius: 4px; }
+    button { margin: 5px; padding: 8px 16px; }
+  </style>
+</head>
+<body>
+  <h1>测试数据结构</h1>
+  
+  <div class="test-section">
+    <h2>1. 检查数据结构</h2>
+    <button onclick="checkStructure()">检查结构</button>
+    <div id="structureOutput"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>2. 模拟列表清单页面的数据存储</h2>
+    <input type="text" id="testOwnerId" placeholder="业主ID" value="testOwner">
+    <button onclick="simulateListSave()">模拟保存</button>
+  </div>
+  
+  <div class="test-section">
+    <h2>3. 模拟后台管理页面的数据读取</h2>
+    <button onclick="simulateAdminLoad()">模拟读取</button>
+    <div id="adminOutput"></div>
+  </div>
+
+  <script>
+    function checkStructure() {
+      const output = document.getElementById('structureOutput');
+      const products = localStorage.getItem('products');
+      
+      output.innerHTML = `
+        <h3>数据结构检查：</h3>
+        <p><strong>原始数据：</strong></p>
+        <pre>${products || 'null'}</pre>
+        <p><strong>类型：</strong> ${typeof products}</p>
+      `;
+      
+      if (products) {
+        try {
+          const parsed = JSON.parse(products);
+          output.innerHTML += `
+            <p><strong>解析后类型：</strong> ${typeof parsed}</p>
+            <p><strong>是否为对象：</strong> ${typeof parsed === 'object' && parsed !== null}</p>
+            <p><strong>是否为数组：</strong> ${Array.isArray(parsed)}</p>
+          `;
+          if (typeof parsed === 'object' && parsed !== null) {
+            const keys = Object.keys(parsed);
+            output.innerHTML += `
+              <p><strong>对象键：</strong> ${keys.join(', ')}</p>
+            `;
+            keys.forEach(key => {
+              output.innerHTML += `
+                <p><strong>${key} 的类型：</strong> ${typeof parsed[key]}</p>
+                <p><strong>${key} 是数组：</strong> ${Array.isArray(parsed[key])}</p>
+                <p><strong>${key} 的长度：</strong> ${Array.isArray(parsed[key]) ? parsed[key].length : 'N/A'}</p>
+              `;
+            });
+          }
+        } catch (e) {
+          output.innerHTML += `<p><strong>解析错误：</strong> ${e.message}</p>`;
+        }
+      }
+    }
+    
+    function simulateListSave() {
+      const ownerId = document.getElementById('testOwnerId').value || 'testOwner';
+      
+      // 模拟列表清单页面的数据存储
+      let allProducts = JSON.parse(localStorage.getItem('products')) || {};
+      let products = allProducts[ownerId] || [];
+      
+      // 添加测试商品
+      products.push({
+        id: Date.now(),
+        name: '测试商品 ' + new Date().toLocaleTimeString(),
+        link: 'https://example.com/test',
+        checked: false
+      });
+      
+      // 保存数据
+      allProducts[ownerId] = products;
+      localStorage.setItem('products', JSON.stringify(allProducts));
+      
+      alert('模拟保存成功！');
+      checkStructure();
+    }
+    
+    function simulateAdminLoad() {
+      const output = document.getElementById('adminOutput');
+      
+      // 模拟后台管理页面的数据读取
+      try {
+        const storedProducts = localStorage.getItem('products');
+        console.log('Stored products:', storedProducts);
+        
+        const allProducts = JSON.parse(storedProducts) || {};
+        console.log('Parsed allProducts:', allProducts);
+        
+        let all = [];
+        Object.keys(allProducts).forEach(ownerId => {
+          console.log('Processing owner:', ownerId);
+          if (Array.isArray(allProducts[ownerId])) {
+            allProducts[ownerId].forEach(product => {
+              all.push({
+                ...product,
+                ownerId: ownerId
+              });
+            });
+          }
+        });
+        
+        console.log('All products:', all);
+        
+        output.innerHTML = `
+          <h3>后台读取结果：</h3>
+          <pre>${JSON.stringify(all, null, 2)}</pre>
+          <p>共 ${all.length} 个商品</p>
+        `;
+      } catch (error) {
+        console.error('Error:', error);
+        output.innerHTML = `<h3>错误：</h3><pre>${error.message}</pre>`;
+      }
+    }
+    
+    // 页面加载时自动检查
+    window.onload = checkStructure;
+  </script>
+</body>
+</html>

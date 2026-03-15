@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>完整流程测试</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; background: #f9f9f9; }
+    .test-image { max-width: 200px; max-height: 150px; margin: 10px 0; border: 1px solid #ccc; }
+    pre { background: #eee; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>完整流程测试</h1>
+  
+  <div class="test-section">
+    <h2>1. 模拟登录</h2>
+    <input type="text" id="ownerId" placeholder="业主ID" value="test123">
+    <button onclick="simulateLogin()">模拟登录</button>
+    <div id="loginResult"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>2. 添加商品</h2>
+    <input type="text" id="productName" placeholder="商品名称" value="测试商品">
+    <button onclick="addProduct()">添加商品</button>
+    <div id="addResult"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>3. 编辑商品（添加图片）</h2>
+    <input type="number" id="productId" placeholder="商品ID">
+    <input type="text" id="imageUrl" placeholder="图片URL" value="https://via.placeholder.com/200x150">
+    <button onclick="editProduct()">编辑商品</button>
+    <div id="editResult"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>4. 渲染商品列表</h2>
+    <button onclick="renderProducts()">渲染列表</button>
+    <div id="renderResult"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>5. 检查localStorage</h2>
+    <button onclick="checkLocalStorage()">检查</button>
+    <div id="localStorageResult"></div>
+  </div>
+
+  <script>
+    let currentOwnerId = null;
+    let products = [];
+    let allProducts = {};
+
+    function simulateLogin() {
+      const ownerId = document.getElementById('ownerId').value;
+      const result = document.getElementById('loginResult');
+      
+      // 模拟登录
+      currentOwnerId = ownerId;
+      localStorage.setItem('currentOwnerId', ownerId);
+      
+      // 初始化业主数据
+      allProducts = JSON.parse(localStorage.getItem('products')) || {};
+      if (!allProducts[ownerId]) {
+        allProducts[ownerId] = [];
+        localStorage.setItem('products', JSON.stringify(allProducts));
+      }
+      products = allProducts[ownerId];
+      
+      result.innerHTML = `<p class="success">登录成功，业主ID: ${ownerId}</p>`;
+    }
+
+    function addProduct() {
+      const name = document.getElementById('productName').value;
+      const result = document.getElementById('addResult');
+      
+      if (!currentOwnerId) {
+        result.innerHTML = `<p class="error">请先登录</p>`;
+        return;
+      }
+      
+      // 添加商品
+      const newId = Date.now() + Math.floor(Math.random() * 1000);
+      const now = new Date();
+      const newProduct = {
+        id: newId,
+        name: name,
+        link: '',
+        checked: false,
+        updatedAt: now.toISOString(),
+        brand: '',
+        size: { length: '', width: '', height: '' },
+        image: '',
+        notes: ''
+      };
+      
+      products.push(newProduct);
+      saveData();
+      
+      result.innerHTML = `<p class="success">商品添加成功，ID: ${newId}</p>`;
+      document.getElementById('productId').value = newId;
+    }
+
+    function editProduct() {
+      const productId = parseInt(document.getElementById('productId').value);
+      const imageUrl = document.getElementById('imageUrl').value;
+      const result = document.getElementById('editResult');
+      
+      if (!currentOwnerId) {
+        result.innerHTML = `<p class="error">请先登录</p>`;
+        return;
+      }
+      
+      // 查找并编辑商品
+      const product = products.find(p => p.id === productId);
+      if (!product) {
+        result.innerHTML = `<p class="error">商品不存在</p>`;
+        return;
+      }
+      
+      product.image = imageUrl;
+      product.updatedAt = new Date().toISOString();
+      saveData();
+      
+      result.innerHTML = `<p class="success">商品编辑成功，图片URL: ${imageUrl}</p>`;
+    }
+
+    function renderProducts() {
+      const result = document.getElementById('renderResult');
+      
+      if (!currentOwnerId) {
+        result.innerHTML = `<p class="error">请先登录</p>`;
+        return;
+      }
+      
+      // 渲染商品列表
+      let html = '<h3>商品列表:</h3>';
+      if (products.length === 0) {
+        html += '<p>暂无商品</p>';
+      } else {
+        products.forEach(prod => {
+          html += `
+            <div style="margin: 10px 0; padding: 10px; border: 1px solid #ddd;">
+              <h4>${prod.name}</h4>
+              <p>ID: ${prod.id}</p>
+              ${prod.image ? `<p>图片URL: ${prod.image}</p><img src="${encodeURI(prod.image)}" class="test-image" alt="商品图片">` : '<p>无图片</p>'}
+            </div>
+          `;
+        });
+      }
+      
+      result.innerHTML = html;
+    }
+
+    function checkLocalStorage() {
+      const result = document.getElementById('localStorageResult');
+      
+      // 检查localStorage中的所有数据
+      const productsData = localStorage.getItem('products');
+      const currentOwner = localStorage.getItem('currentOwnerId');
+      
+      result.innerHTML = `
+        <h3>localStorage内容:</h3>
+        <p><strong>Current Owner ID:</strong> ${currentOwner || 'null'}</p>
+        <p><strong>Products:</strong></p>
+        <pre>${productsData ? JSON.stringify(JSON.parse(productsData), null, 2) : 'null'}</pre>
+      `;
+    }
+
+    function saveData() {
+      allProducts[currentOwnerId] = products;
+      localStorage.setItem('products', JSON.stringify(allProducts));
+    }
+
+    // 页面加载时自动检查
+    window.onload = function() {
+      checkLocalStorage();
+    };
+  </script>
+</body>
+</html>

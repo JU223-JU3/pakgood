@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>测试 localStorage 数据</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+    }
+    pre {
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    button {
+      margin: 10px 5px 0 0;
+      padding: 8px 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0069d9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>测试 localStorage 数据</h1>
+    <button onclick="showData()">查看 localStorage 数据</button>
+    <button onclick="clearData()">清空 localStorage 数据</button>
+    <div id="output"></div>
+  </div>
+
+  <script>
+    function showData() {
+      const output = document.getElementById('output');
+      const data = {
+        products: localStorage.getItem('products'),
+        owners: localStorage.getItem('owners'),
+        currentOwnerId: localStorage.getItem('currentOwnerId')
+      };
+      
+      let html = '<h2>LocalStorage 数据：</h2>';
+      html += '<h3>products:</h3>';
+      html += '<pre>' + (data.products ? JSON.stringify(JSON.parse(data.products), null, 2) : 'null') + '</pre>';
+      html += '<h3>owners:</h3>';
+      html += '<pre>' + (data.owners ? JSON.stringify(JSON.parse(data.owners), null, 2) : 'null') + '</pre>';
+      html += '<h3>currentOwnerId:</h3>';
+      html += '<pre>' + (data.currentOwnerId || 'null') + '</pre>';
+      
+      output.innerHTML = html;
+    }
+    
+    function clearData() {
+      if (confirm('确定要清空所有数据吗？')) {
+        localStorage.clear();
+        showData();
+        alert('数据已清空');
+      }
+    }
+    
+    // 页面加载时自动显示数据
+    window.onload = showData;
+  </script>
+</body>
+</html>

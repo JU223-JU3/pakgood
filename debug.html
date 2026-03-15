@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug Data</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; background: #f9f9f9; }
+    pre { background: #eee; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    button { margin: 5px; padding: 8px 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>数据调试</h1>
+  
+  <div class="debug-section">
+    <h2>1. 检查 localStorage 数据</h2>
+    <button onclick="checkLocalStorage()">检查数据</button>
+    <div id="localStorageOutput"></div>
+  </div>
+  
+  <div class="debug-section">
+    <h2>2. 模拟业主保存</h2>
+    <input type="text" id="ownerId" placeholder="业主ID" value="test123">
+    <button onclick="simulateSave()">模拟保存</button>
+  </div>
+  
+  <div class="debug-section">
+    <h2>3. 模拟后台读取</h2>
+    <button onclick="simulateAdminRead()">模拟读取</button>
+    <div id="adminOutput"></div>
+  </div>
+
+  <script>
+    function checkLocalStorage() {
+      const output = document.getElementById('localStorageOutput');
+      const products = localStorage.getItem('products');
+      const owners = localStorage.getItem('owners');
+      const currentOwnerId = localStorage.getItem('currentOwnerId');
+      
+      output.innerHTML = `
+        <h3>LocalStorage 内容：</h3>
+        <p><strong>products:</strong></p>
+        <pre>${products ? JSON.stringify(JSON.parse(products), null, 2) : 'null'}</pre>
+        <p><strong>owners:</strong></p>
+        <pre>${owners ? JSON.stringify(JSON.parse(owners), null, 2) : 'null'}</pre>
+        <p><strong>currentOwnerId:</strong></p>
+        <pre>${currentOwnerId || 'null'}</pre>
+      `;
+    }
+    
+    function simulateSave() {
+      const ownerId = document.getElementById('ownerId').value || 'test123';
+      
+      // 模拟列表清单页面的保存逻辑
+      let allProducts = JSON.parse(localStorage.getItem('products')) || {};
+      let products = allProducts[ownerId] || [];
+      
+      // 添加测试商品
+      products.push({
+        id: Date.now(),
+        name: '测试商品 ' + new Date().toLocaleTimeString(),
+        link: 'https://example.com/test',
+        checked: false
+      });
+      
+      // 保存数据
+      allProducts[ownerId] = products;
+      localStorage.setItem('products', JSON.stringify(allProducts));
+      
+      // 保存业主列表
+      let owners = JSON.parse(localStorage.getItem('owners')) || [];
+      if (!owners.includes(ownerId)) {
+        owners.push(ownerId);
+        localStorage.setItem('owners', JSON.stringify(owners));
+      }
+      
+      alert('模拟保存成功！');
+      checkLocalStorage();
+    }
+    
+    function simulateAdminRead() {
+      const output = document.getElementById('adminOutput');
+      
+      // 模拟后台管理页面的读取逻辑
+      const allProducts = JSON.parse(localStorage.getItem('products')) || {};
+      let all = [];
+      
+      console.log('allProducts:', allProducts);
+      console.log('Type:', typeof allProducts);
+      
+      if (typeof allProducts === 'object' && allProducts !== null) {
+        Object.keys(allProducts).forEach(ownerId => {
+          console.log('Processing owner:', ownerId);
+          if (Array.isArray(allProducts[ownerId])) {
+            allProducts[ownerId].forEach(product => {
+              all.push({
+                ...product,
+                ownerId: ownerId
+              });
+            });
+          }
+        });
+      }
+      
+      output.innerHTML = `
+        <h3>后台读取结果：</h3>
+        <pre>${JSON.stringify(all, null, 2)}</pre>
+        <p>共 ${all.length} 个商品</p>
+      `;
+    }
+    
+    // 页面加载时自动检查
+    window.onload = checkLocalStorage;
+  </script>
+</body>
+</html>

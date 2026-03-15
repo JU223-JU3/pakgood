@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+    pre { background: #f0f0f0; padding: 10px; border-radius: 4px; }
+    button { margin: 5px; padding: 8px 16px; }
+  </style>
+</head>
+<body>
+  <h1>简单测试</h1>
+  
+  <div class="test-section">
+    <h2>测试数据流程</h2>
+    <button onclick="testFlow()">运行测试</button>
+    <div id="testOutput"></div>
+  </div>
+
+  <script>
+    function testFlow() {
+      const output = document.getElementById('testOutput');
+      let log = '';
+      
+      // 1. 清除数据
+      localStorage.removeItem('products');
+      localStorage.removeItem('owners');
+      log += '<h3>1. 清除数据</h3>';
+      
+      // 2. 模拟业主注册
+      const ownerId = 'testOwner' + Date.now();
+      let owners = JSON.parse(localStorage.getItem('owners')) || [];
+      owners.push(ownerId);
+      localStorage.setItem('owners', JSON.stringify(owners));
+      
+      let allProducts = JSON.parse(localStorage.getItem('products')) || {};
+      allProducts[ownerId] = [];
+      localStorage.setItem('products', JSON.stringify(allProducts));
+      log += `<h3>2. 注册业主: ${ownerId}</h3>`;
+      
+      // 3. 模拟添加商品
+      allProducts = JSON.parse(localStorage.getItem('products')) || {};
+      let products = allProducts[ownerId] || [];
+      products.push({
+        id: Date.now(),
+        name: '测试商品',
+        link: 'https://example.com',
+        checked: false
+      });
+      allProducts[ownerId] = products;
+      localStorage.setItem('products', JSON.stringify(allProducts));
+      log += '<h3>3. 添加商品</h3>';
+      
+      // 4. 模拟后台读取
+      allProducts = JSON.parse(localStorage.getItem('products')) || {};
+      let all = [];
+      if (typeof allProducts === 'object' && allProducts !== null) {
+        Object.keys(allProducts).forEach(ownerId => {
+          if (Array.isArray(allProducts[ownerId])) {
+            allProducts[ownerId].forEach(product => {
+              all.push({
+                ...product,
+                ownerId: ownerId
+              });
+            });
+          }
+        });
+      }
+      log += '<h3>4. 后台读取结果</h3>';
+      log += `<pre>${JSON.stringify(all, null, 2)}</pre>`;
+      log += `<p>共 ${all.length} 个商品</p>`;
+      
+      // 5. 显示localStorage内容
+      log += '<h3>5. localStorage内容</h3>';
+      log += `<pre>${JSON.stringify(JSON.parse(localStorage.getItem('products')), null, 2)}</pre>`;
+      
+      output.innerHTML = log;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>检查数据</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    pre { background: #f0f0f0; padding: 15px; border-radius: 5px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>检查localStorage数据</h1>
+  <button onclick="checkData()">检查数据</button>
+  <div id="output"></div>
+
+  <script>
+    function checkData() {
+      const output = document.getElementById('output');
+      let html = '<h2>检查结果</h2>';
+
+      // 检查products数据
+      const products = localStorage.getItem('products');
+      html += '<h3>Products数据:</h3>';
+      if (products) {
+        const parsedProducts = JSON.parse(products);
+        html += '<pre>' + JSON.stringify(parsedProducts, null, 2) + '</pre>';
+
+        // 检查每个商品的图片URL
+        html += '<h3>图片URL检查:</h3>';
+        Object.keys(parsedProducts).forEach(ownerId => {
+          html += '<h4>业主 ' + ownerId + ':</h4>';
+          parsedProducts[ownerId].forEach(product => {
+            html += '<p>商品: ' + product.name + '</p>';
+            html += '<p>图片URL: ' + (product.image || '无') + '</p>';
+            html += '<p>是否有图片: ' + !!product.image + '</p>';
+            html += '<hr>';
+          });
+        });
+      } else {
+        html += '<p>无Products数据</p>';
+      }
+
+      // 检查ownerCredentials数据
+      const ownerCredentials = localStorage.getItem('ownerCredentials');
+      html += '<h3>Owner Credentials:</h3>';
+      html += '<pre>' + (ownerCredentials || '无') + '</pre>';
+
+      // 检查currentOwnerId
+      const currentOwnerId = localStorage.getItem('currentOwnerId');
+      html += '<h3>Current Owner ID:</h3>';
+      html += '<p>' + (currentOwnerId || '无') + '</p>';
+
+      output.innerHTML = html;
+    }
+
+    // 页面加载时自动检查
+    window.onload = checkData;
+  </script>
+</body>
+</html>

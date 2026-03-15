@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>测试数据存储</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .test-section { margin: 20px 0; padding: 10px; border: 1px solid #ccc; }
+    button { margin: 5px; padding: 8px 16px; }
+    pre { background: #f0f0f0; padding: 10px; }
+  </style>
+</head>
+<body>
+  <h1>测试数据存储</h1>
+  
+  <div class="test-section">
+    <h2>1. 模拟业主保存数据</h2>
+    <button onclick="simulateOwnerSave()">模拟业主保存商品</button>
+  </div>
+  
+  <div class="test-section">
+    <h2>2. 模拟后台读取数据</h2>
+    <button onclick="simulateAdminLoad()">模拟后台读取数据</button>
+  </div>
+  
+  <div class="test-section">
+    <h2>3. 查看当前数据</h2>
+    <button onclick="showCurrentData()">查看当前数据</button>
+  </div>
+  
+  <div id="output"></div>
+
+  <script>
+    function simulateOwnerSave() {
+      const ownerId = 'testOwner123';
+      
+      // 模拟业主保存数据
+      let allProducts = JSON.parse(localStorage.getItem('products')) || {};
+      allProducts[ownerId] = [
+        { id: 1, name: '测试商品1', link: 'https://example.com/1', checked: true },
+        { id: 2, name: '测试商品2', link: '', checked: false }
+      ];
+      localStorage.setItem('products', JSON.stringify(allProducts));
+      
+      // 保存业主列表
+      let owners = JSON.parse(localStorage.getItem('owners')) || [];
+      if (!owners.includes(ownerId)) {
+        owners.push(ownerId);
+        localStorage.setItem('owners', JSON.stringify(owners));
+      }
+      
+      document.getElementById('output').innerHTML = '<h3>模拟保存成功！</h3><pre>已保存测试数据到 localStorage</pre>';
+    }
+    
+    function simulateAdminLoad() {
+      // 模拟后台读取数据
+      const allProducts = JSON.parse(localStorage.getItem('products')) || {};
+      let all = [];
+      
+      Object.keys(allProducts).forEach(ownerId => {
+        if (Array.isArray(allProducts[ownerId])) {
+          allProducts[ownerId].forEach(product => {
+            all.push({
+              ...product,
+              ownerId: ownerId
+            });
+          });
+        }
+      });
+      
+      document.getElementById('output').innerHTML = '<h3>后台读取结果：</h3><pre>' + JSON.stringify(all, null, 2) + '</pre>';
+    }
+    
+    function showCurrentData() {
+      const products = localStorage.getItem('products');
+      const owners = localStorage.getItem('owners');
+      
+      document.getElementById('output').innerHTML = `
+        <h3>当前 localStorage 数据：</h3>
+        <h4>products:</h4>
+        <pre>${products ? JSON.stringify(JSON.parse(products), null, 2) : 'null'}</pre>
+        <h4>owners:</h4>
+        <pre>${owners ? JSON.stringify(JSON.parse(owners), null, 2) : 'null'}</pre>
+      `;
+    }
+  </script>
+</body>
+</html>

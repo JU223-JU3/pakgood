@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图片显示测试</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .product-image { max-width: 200px; max-height: 150px; margin: 10px 0; border: 1px solid #ccc; display: block; }
+  </style>
+</head>
+<body>
+  <h1>图片显示测试</h1>
+  
+  <h2>测试图片显示</h2>
+  <div id="test-container"></div>
+
+  <script>
+    // 测试数据
+    const testProducts = [
+      {
+        id: 1,
+        name: '测试商品1',
+        image: 'https://via.placeholder.com/200x150'
+      },
+      {
+        id: 2,
+        name: '测试商品2',
+        image: 'https://via.placeholder.com/300x200'
+      },
+      {
+        id: 3,
+        name: '测试商品3',
+        image: ''
+      }
+    ];
+
+    // 渲染测试数据
+    const testContainer = document.getElementById('test-container');
+    testProducts.forEach(product => {
+      const productDiv = document.createElement('div');
+      productDiv.innerHTML = `
+        <h3>${product.name}</h3>
+        ${product.image ? `<img src="${product.image}" class="product-image" alt="商品图示" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22150%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20150%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_15e8a24c914%20text%20%7B%20fill%3Argba(206%2C217%2C224%2C.5)%3Bfont-weight%3Anormal%3Bfont-family%3AHelvetica%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_15e8a24c914%22%3E%3Crect%20width%3D%22200%22%20height%3D%22150%22%20fill%3D%22%23F8F8F8%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2274%22%20y%3D%2281%22%3E图片加载失败%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E';"></div>` : '<p>无图片</p>'
+      `;
+      testContainer.appendChild(productDiv);
+    });
+
+    console.log('测试数据:', testProducts);
+  </script>
+</body>
+</html>

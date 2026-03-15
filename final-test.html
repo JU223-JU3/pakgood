@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Final Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+    pre { background: #f0f0f0; padding: 10px; border-radius: 4px; }
+    button { margin: 5px; padding: 8px 16px; }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>最终测试</h1>
+  
+  <div class="test-section">
+    <h2>测试整个数据流程</h2>
+    <button onclick="runFullTest()">运行完整测试</button>
+    <div id="testOutput"></div>
+  </div>
+
+  <script>
+    function runFullTest() {
+      const output = document.getElementById('testOutput');
+      let log = '';
+      
+      try {
+        // 1. 清除所有数据
+        localStorage.removeItem('products');
+        localStorage.removeItem('owners');
+        localStorage.removeItem('currentOwnerId');
+        log += '<h3>1. 清除数据</h3>';
+        log += '<p class="success">✓ 数据已清除</p>';
+        
+        // 2. 模拟业主注册
+        const ownerId = 'testOwner' + Date.now();
+        let owners = JSON.parse(localStorage.getItem('owners')) || [];
+        owners.push(ownerId);
+        localStorage.setItem('owners', JSON.stringify(owners));
+        
+        let allProducts = JSON.parse(localStorage.getItem('products')) || {};
+        allProducts[ownerId] = [];
+        localStorage.setItem('products', JSON.stringify(allProducts));
+        
+        log += `<h3>2. 注册业主: ${ownerId}</h3>`;
+        log += '<p class="success">✓ 业主注册成功</p>';
+        
+        // 3. 模拟添加商品
+        allProducts = JSON.parse(localStorage.getItem('products')) || {};
+        let products = allProducts[ownerId] || [];
+        
+        // 添加多个商品
+        for (let i = 1; i <= 3; i++) {
+          products.push({
+            id: Date.now() + i,
+            name: `测试商品 ${i}`,
+            link: `https://example.com/product${i}`,
+            checked: i % 2 === 0
+          });
+        }
+        
+        allProducts[ownerId] = products;
+        localStorage.setItem('products', JSON.stringify(allProducts));
+        
+        log += '<h3>3. 添加商品</h3>';
+        log += '<p class="success">✓ 商品添加成功</p>';
+        
+        // 4. 模拟后台读取
+        log += '<h3>4. 模拟后台读取</h3>';
+        
+        // 模拟后台管理页面的loadData函数
+        function simulateAdminLoad() {
+          const storedProducts = localStorage.getItem('products');
+          console.log('Stored products:', storedProducts);
+          
+          const allProducts = JSON.parse(storedProducts) || {};
+          console.log('Parsed allProducts:', allProducts);
+          
+          let products = [];
+          if (typeof allProducts === 'object' && allProducts !== null) {
+            Object.keys(allProducts).forEach(ownerId => {
+              console.log('Processing owner:', ownerId);
+              const ownerProducts = allProducts[ownerId];
+              if (Array.isArray(ownerProducts)) {
+                console.log('Owner has', ownerProducts.length, 'products');
+                ownerProducts.forEach(product => {
+                  products.push({
+                    ...product,
+                    ownerId: ownerId
+                  });
+                });
+              }
+            });
+          }
+          console.log('Loaded products:', products);
+          return products;
+        }
+        
+        const adminProducts = simulateAdminLoad();
+        log += `<pre>${JSON.stringify(adminProducts, null, 2)}</pre>`;
+        log += `<p class="success">✓ 后台读取成功，共 ${adminProducts.length} 个商品</p>`;
+        
+        // 5. 显示最终数据
+        log += '<h3>5. 最终数据结构</h3>';
+        const finalData = JSON.parse(localStorage.getItem('products'));
+        log += `<pre>${JSON.stringify(finalData, null, 2)}</pre>`;
+        
+        // 6. 测试结论
+        if (adminProducts.length > 0) {
+          log += '<h3>6. 测试结论</h3>';
+          log += '<p class="success">✓ 数据流程正常，后台可以读取到业主填写的内容</p>';
+        } else {
+          log += '<h3>6. 测试结论</h3>';
+          log += '<p class="error">✗ 数据流程异常，后台无法读取到业主填写的内容</p>';
+        }
+        
+      } catch (error) {
+        log += '<h3>测试错误</h3>';
+        log += `<p class="error">✗ 错误: ${error.message}</p>`;
+        log += `<pre>${error.stack}</pre>`;
+      }
+      
+      output.innerHTML = log;
+    }
+  </script>
+</body>
+</html>

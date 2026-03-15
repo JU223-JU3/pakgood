@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图片显示调试</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; background: #f9f9f9; }
+    .test-image { max-width: 200px; max-height: 150px; margin: 10px 0; border: 1px solid #ccc; }
+    pre { background: #eee; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>图片显示调试</h1>
+  
+  <div class="test-section">
+    <h2>1. 基本图片测试</h2>
+    <input type="text" id="testUrl" placeholder="输入图片URL" value="https://via.placeholder.com/200x150">
+    <button onclick="testBasicImage()">测试</button>
+    <div id="basicTestResult"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>2. 模拟商品数据</h2>
+    <button onclick="createTestProduct()">创建测试商品</button>
+    <button onclick="checkTestProduct()">检查测试商品</button>
+    <div id="productTestResult"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>3. 检查localStorage</h2>
+    <button onclick="checkLocalStorage()">检查</button>
+    <div id="localStorageResult"></div>
+  </div>
+
+  <script>
+    function testBasicImage() {
+      const url = document.getElementById('testUrl').value;
+      const result = document.getElementById('basicTestResult');
+      
+      result.innerHTML = `
+        <p>测试URL: ${url}</p>
+        <p>编码后URL: ${encodeURI(url)}</p>
+        <img src="${encodeURI(url)}" class="test-image" alt="测试图片">
+      `;
+    }
+
+    function createTestProduct() {
+      const result = document.getElementById('productTestResult');
+      
+      // 创建测试商品
+      const testProduct = {
+        id: Date.now(),
+        name: '测试商品',
+        link: '',
+        checked: false,
+        updatedAt: new Date().toISOString(),
+        brand: '测试品牌',
+        size: { length: '100', width: '50', height: '30' },
+        image: 'https://via.placeholder.com/200x150',
+        notes: '测试备注'
+      };
+      
+      // 保存到localStorage
+      let allProducts = JSON.parse(localStorage.getItem('products')) || {};
+      const testOwnerId = 'test123';
+      if (!allProducts[testOwnerId]) {
+        allProducts[testOwnerId] = [];
+      }
+      allProducts[testOwnerId].push(testProduct);
+      localStorage.setItem('products', JSON.stringify(allProducts));
+      
+      result.innerHTML = `<p class="success">测试商品已创建</p>`;
+    }
+
+    function checkTestProduct() {
+      const result = document.getElementById('productTestResult');
+      
+      // 从localStorage读取测试商品
+      const allProducts = JSON.parse(localStorage.getItem('products')) || {};
+      const testOwnerId = 'test123';
+      const testProducts = allProducts[testOwnerId] || [];
+      
+      if (testProducts.length > 0) {
+        const testProduct = testProducts[testProducts.length - 1];
+        result.innerHTML = `
+          <h3>测试商品信息:</h3>
+          <pre>${JSON.stringify(testProduct, null, 2)}</pre>
+          <h4>图片显示测试:</h4>
+          <img src="${encodeURI(testProduct.image)}" class="test-image" alt="测试商品图片">
+        `;
+      } else {
+        result.innerHTML = `<p class="error">无测试商品</p>`;
+      }
+    }
+
+    function checkLocalStorage() {
+      const result = document.getElementById('localStorageResult');
+      
+      // 检查localStorage中的所有数据
+      const products = localStorage.getItem('products');
+      const ownerCredentials = localStorage.getItem('ownerCredentials');
+      const currentOwnerId = localStorage.getItem('currentOwnerId');
+      
+      result.innerHTML = `
+        <h3>localStorage内容:</h3>
+        <p><strong>Products:</strong></p>
+        <pre>${products ? JSON.stringify(JSON.parse(products), null, 2) : 'null'}</pre>
+        <p><strong>Owner Credentials:</strong></p>
+        <pre>${ownerCredentials ? JSON.stringify(JSON.parse(ownerCredentials), null, 2) : 'null'}</pre>
+        <p><strong>Current Owner ID:</strong></p>
+        <pre>${currentOwnerId || 'null'}</pre>
+      `;
+    }
+
+    // 页面加载时自动测试
+    window.onload = function() {
+      testBasicImage();
+      checkLocalStorage();
+    };
+  </script>
+</body>
+</html>

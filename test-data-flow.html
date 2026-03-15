@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Data Flow</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .test-step { margin: 20px 0; padding: 15px; border: 1px solid #ccc; background: #f9f9f9; }
+    pre { background: #eee; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    button { margin: 5px; padding: 8px 16px; cursor: pointer; }
+    .step-title { font-weight: bold; margin-bottom: 10px; }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>测试数据流程</h1>
+  
+  <div class="test-step">
+    <div class="step-title">步骤1: 清除所有数据</div>
+    <button onclick="clearAllData()">清除数据</button>
+    <div id="clearOutput"></div>
+  </div>
+  
+  <div class="test-step">
+    <div class="step-title">步骤2: 模拟业主注册</div>
+    <input type="text" id="testOwnerId" placeholder="业主ID" value="testOwner123">
+    <button onclick="simulateRegistration()">模拟注册</button>
+    <div id="registerOutput"></div>
+  </div>
+  
+  <div class="test-step">
+    <div class="step-title">步骤3: 模拟添加商品</div>
+    <input type="text" id="productName" placeholder="商品名称" value="测试商品">
+    <input type="text" id="productLink" placeholder="商品链接" value="https://example.com">
+    <button onclick="simulateAddProduct()">添加商品</button>
+    <div id="addOutput"></div>
+  </div>
+  
+  <div class="test-step">
+    <div class="step-title">步骤4: 模拟后台读取</div>
+    <button onclick="simulateAdminRead()">后台读取</button>
+    <div id="adminOutput"></div>
+  </div>
+
+  <script>
+    function clearAllData() {
+      localStorage.removeItem('products');
+      localStorage.removeItem('owners');
+      localStorage.removeItem('currentOwnerId');
+      document.getElementById('clearOutput').innerHTML = '<p class="success">✓ 数据已清除</p>';
+      checkData();
+    }
+    
+    function checkData() {
+      const products = localStorage.getItem('products');
+      const owners = localStorage.getItem('owners');
+      const currentOwnerId = localStorage.getItem('currentOwnerId');
+      
+      return {
+        products: products ? JSON.parse(products) : null,
+        owners: owners ? JSON.parse(owners) : null,
+        currentOwnerId: currentOwnerId
+      };
+    }
+    
+    function simulateRegistration() {
+      const ownerId = document.getElementById('testOwnerId').value || 'testOwner123';
+      
+      // 模拟注册过程
+      const owners = JSON.parse(localStorage.getItem('owners')) || [];
+      if (!owners.includes(ownerId)) {
+        owners.push(ownerId);
+        localStorage.setItem('owners', JSON.stringify(owners));
+      }
+      
+      localStorage.setItem('currentOwnerId', ownerId);
+      
+      const allProducts = JSON.parse(localStorage.getItem('products')) || {};
+      allProducts[ownerId] = [];
+      localStorage.setItem('products', JSON.stringify(allProducts));
+      
+      const data = checkData();
+      document.getElementById('registerOutput').innerHTML = `
+        <pre>${JSON.stringify(data, null, 2)}</pre>
+        <p class="success">✓ 业主注册成功</p>
+      `;
+    }
+    
+    function simulateAddProduct() {
+      const ownerId = document.getElementById('testOwnerId').value || 'testOwner123';
+      const productName = document.getElementById('productName').value || '测试商品';
+      const productLink = document.getElementById('productLink').value || 'https://example.com';
+      
+      // 模拟添加商品
+      const allProducts = JSON.parse(localStorage.getItem('products')) || {};
+      const products = allProducts[ownerId] || [];
+      
+      products.push({
+        id: Date.now(),
+        name: productName,
+        link: productLink,
+        checked: false
+      });
+      
+      allProducts[ownerId] = products;
+      localStorage.setItem('products', JSON.stringify(allProducts));
+      
+      const data = checkData();
+      document.getElementById('addOutput').innerHTML = `
+        <pre>${JSON.stringify(data, null, 2)}</pre>
+        <p class="success">✓ 商品添加成功</p>
+      `;
+    }
+    
+    function simulateAdminRead() {
+      // 模拟后台管理页面的读取逻辑
+      const allProducts = JSON.parse(localStorage.getItem('products')) || {};
+      let all = [];
+      
+      console.log('allProducts:', allProducts);
+      console.log('Type:', typeof allProducts);
+      
+      if (typeof allProducts === 'object' && allProducts !== null) {
+        Object.keys(allProducts).forEach(ownerId => {
+          console.log('Processing owner:', ownerId);
+          if (Array.isArray(allProducts[ownerId])) {
+            allProducts[ownerId].forEach(product => {
+              all.push({
+                ...product,
+                ownerId: ownerId
+              });
+            });
+          }
+        });
+      }
+      
+      console.log('All products:', all);
+      
+      document.getElementById('adminOutput').innerHTML = `
+        <pre>${JSON.stringify(all, null, 2)}</pre>
+        <p class="success">✓ 后台读取成功，共 ${all.length} 个商品</p>
+      `;
+    }
+  </script>
+</body>
+</html>

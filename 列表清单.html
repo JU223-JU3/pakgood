@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+  <title>业主选品 · 垂直清单 + 链接选项</title>
+  <!-- 字体 & 图标库 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* 全局重置与氛围 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f4f6fc;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      color: #1e293b;
+      line-height: 1.5;
+      padding: 2rem 1.5rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    /* 主容器 — 干净通透 */
+    .catalog {
+      max-width: 1100px;
+      width: 100%;
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(2px);
+      border-radius: 2.5rem;
+      padding: 2.5rem 2rem;
+      box-shadow: 0 25px 50px -16px rgba(0,0,0,0.12);
+      border: 1px solid rgba(255,255,255,0.6);
+    }
+
+    /* 头部区域 */
+    .catalog-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .title-section h1 {
+      font-weight: 480;
+      font-size: 1.9rem;
+      letter-spacing: -0.02em;
+      background: linear-gradient(145deg, #1e293b, #334155);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .title-section .badge {
+      font-size: 0.9rem;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.2rem;
+    }
+
+    .badge i {
+      color: #8b5cf6;
+      font-size: 0.9rem;
+    }
+
+    /* 操作栏 */
+    .action-bar {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      background: rgba(255,255,255,0.7);
+      padding: 0.4rem 0.8rem 0.4rem 1.8rem;
+      border-radius: 60px;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(203,213,225,0.4);
+      box-shadow: 0 6px 12px -8px rgba(0,0,0,0.1);
+    }
+
+    .selected-info {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: #2d3a4f;
+      font-weight: 450;
+    }
+
+    .selected-count {
+      background: #1e293b;
+      color: white;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.2rem 0.8rem;
+      border-radius: 30px;
+    }
+
+    .btn-primary {
+      background: #1e293b;
+      border: none;
+      color: white;
+      padding: 0.65rem 1.6rem;
+      border-radius: 40px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 10px 18px -12px #0f172a;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .btn-primary i {
+      transition: transform 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: #2d3a4f;
+      transform: translateY(-2px);
+      box-shadow: 0 16px 24px -12px #0f172a;
+    }
+
+    .btn-primary:hover i {
+      transform: rotate(90deg);
+    }
+
+    /* 新增卡片 — 包含链接输入 */
+    .add-card {
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(8px);
+      border-radius: 2rem;
+      padding: 1.8rem 2rem;
+      margin-bottom: 2.5rem;
+      border: 1px solid rgba(255,255,255,0.9);
+      box-shadow: 0 20px 30px -16px rgba(0,0,0,0.15);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 1.5rem 2rem;
+      transition: 0.2s;
+    }
+
+    .add-card.hidden {
+      display: none;
+    }
+
+    .input-group {
+      flex: 2 1 260px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+      margin-bottom: 0.3rem;
+      font-weight: 500;
+    }
+
+    .input-group input {
+      width: 100%;
+      background: rgba(255,255,255,0.8);
+      border: 1px solid #e2e8f0;
+      border-radius: 1.5rem;
+      padding: 0.9rem 1.5rem;
+      font-size: 1rem;
+      font-family: 'Inter', sans-serif;
+      transition: 0.2s;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: #a78bfa;
+      box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.15);
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .btn-save {
+      background: #1e293b;
+      border: none;
+      color: white;
+      padding: 0.9rem 2.2rem;
+      border-radius: 2.5rem;
+      font-weight: 500;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: 0.15s;
+      box-shadow: 0 6px 12px -6px #0f172a;
+    }
+
+    .btn-save:hover {
+      background: #2d3a4f;
+      transform: scale(1.02);
+    }
+
+    .btn-text {
+      background: transparent;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+      padding: 0.9rem 2rem;
+      border-radius: 2.5rem;
+      font-weight: 450;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .btn-text:hover {
+      background: rgba(255,255,255,0.7);
+      border-color: #94a3b8;
+    }
+
+    /* 垂直列表容器 */
+    .products-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      margin-top: 1.2rem;
+    }
+
+    /* 列表项卡片 — 柔和立体，垂直内嵌 */
+    .list-item {
+      background: #ffffffdd;
+      backdrop-filter: blur(2px);
+      border-radius: 1.8rem;
+      box-shadow: 0 8px 20px -12px rgba(0,0,0,0.12);
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255,255,255,0.7);
+      padding: 1.2rem 1.5rem 1.2rem 1.5rem;
+    }
+
+    .list-item:hover {
+      transform: translateX(4px);
+      box-shadow: 0 12px 28px -16px #1e293b33;
+      border-color: #ffffff;
+    }
+
+    /* 第一行：勾选图标 + 商品名 + 删除按钮 */
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    /* 勾选图标 (无背景) */
+    .check-icon {
+      font-size: 1.8rem;
+      cursor: pointer;
+      transition: 0.15s;
+      color: #94a3b8;           /* 默认空心圆颜色 */
+      flex-shrink: 0;
+    }
+
+    .check-icon.fa-circle-check {
+      color: #8b5cf6;            /* 选中紫色 */
+    }
+
+    .check-icon:hover {
+      transform: scale(1.1);
+      filter: drop-shadow(0 0 4px #cbd5e1);
+    }
+
+    .product-name {
+      font-weight: 530;
+      font-size: 1.2rem;
+      letter-spacing: -0.01em;
+      color: #0f172a;
+      flex: 1 1 auto;
+      word-break: break-word;
+      padding-right: 0.5rem;
+    }
+
+    .delete-btn {
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(2px);
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: 0.15s;
+      border: 1px solid rgba(203,213,225,0.5);
+      flex-shrink: 0;
+    }
+
+    .delete-btn:hover {
+      background: #fee2e2;
+      color: #b91c1c;
+      border-color: #fecaca;
+      transform: scale(1.05);
+    }
+
+    /* 第二行：链接区域 */
+    .link-row {
+      display: flex;
+      align-items: center;
+      margin-top: 0.8rem;
+      padding-left: 0.2rem;
+    }
+
+    .link-row i {
+      font-size: 1rem;
+      color: #8b5cf6;
+      width: 1.6rem;
+      text-align: center;
+      opacity: 0.8;
+      margin-right: 0.6rem;
+    }
+
+    .link-row input {
+      flex: 1;
+      margin-right: 0.6rem;
+    }
+
+    .link-input {
+      background: rgba(241, 245, 249, 0.5);
+      border: 1px solid #e2e8f0;
+      border-radius: 2rem;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+      color: #1e293b;
+      transition: 0.2s;
+    }
+
+    .link-input:focus {
+      outline: none;
+      border-color: #a78bfa;
+      background: rgba(255,255,255,0.9);
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.1);
+    }
+
+    .link-input::placeholder {
+      color: #94a3b8;
+      font-weight: 300;
+      font-size: 0.85rem;
+    }
+
+    .open-link-btn {
+      background: rgba(139, 92, 246, 0.1);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      color: #8b5cf6;
+      width: 36px;
+      height: 36px;
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      margin-left: 10px;
+    }
+
+    .open-link-btn:hover {
+      background: rgba(139, 92, 246, 0.2);
+      transform: scale(1.05);
+      box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
+    }
+
+    /* 空状态 */
+    .empty-message {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: rgba(255,255,255,0.5);
+      border-radius: 3rem;
+      color: #64748b;
+      font-size: 1.1rem;
+      border: 1px dashed #cbd5e1;
+      backdrop-filter: blur(4px);
+    }
+
+    .empty-message i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.4;
+    }
+
+    .footer-note {
+      margin-top: 2.8rem;
+      text-align: right;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 1.2rem;
+    }
+
+    /* 模态框样式 */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      color: #1e293b;
+      font-size: 1.25rem;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #64748b;
+    }
+
+    .modal-close:hover {
+      color: #334155;
+    }
+
+    .modal-body .input-group {
+      margin-bottom: 15px;
+    }
+
+    .modal-body label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #334155;
+    }
+
+    .modal-body input[type="text"],
+    .modal-body input[type="url"],
+    .modal-body input[type="number"],
+    .modal-body textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+
+    .modal-body textarea {
+      resize: vertical;
+    }
+
+    /* 商品详情样式 */
+    .product-details {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f8fafc;
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+
+    .detail-item {
+      margin-bottom: 5px;
+    }
+
+    .detail-label {
+      font-weight: 500;
+      color: #64748b;
+      margin-right: 5px;
+    }
+
+    .product-image {
+      margin-top: 10px;
+      max-width: 200px;
+      max-height: 150px;
+      border-radius: 4px;
+      display: block;
+    }
+
+    .edit-btn {
+      background: none;
+      border: none;
+      color: #3b82f6;
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: 0.25rem;
+      transition: all 0.2s ease;
+      margin-right: 0.5rem;
+    }
+
+    .edit-btn:hover {
+      background: #eff6ff;
+    }
+  </style>
+</head>
+<body>
+<div class="catalog">
+  <!-- 头部 -->
+  <div class="catalog-header">
+    <div class="title-section">
+      <h1>PAK业主电器配置清单</h1>
+      <div class="badge">
+        <i class="fa-regular fa-user"></i>
+        <span>业主ID: <span id="currentOwnerId"></span></span>
+      </div>
+    </div>
+    <div class="action-bar">
+      <div class="selected-info">
+        <i class="fa-regular fa-bookmark" style="color:#8b5cf6;"></i>
+        <span>已选</span>
+        <span class="selected-count" id="selectedCount">0</span>
+      </div>
+      <button class="btn-primary" id="addProductBtn">
+        <i class="fa-solid fa-plus"></i>
+        <span>添加商品</span>
+      </button>
+      <button class="btn-text" onclick="logout()" style="background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 0.65rem 1.2rem;">
+        <i class="fa-solid fa-sign-out-alt"></i>
+        <span>退出</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 新增卡片 (名称 + 链接) -->
+  <div id="addCard" class="add-card hidden">
+    <div class="input-group">
+      <label><i class="fa-regular fa-pen-to-square"></i> 商品名称</label>
+      <input type="text" id="newName" placeholder="例：羊绒盖毯" autocomplete="off">
+    </div>
+    <div class="input-group">
+      <label><i class="fa-solid fa-link"></i> 平台链接 (可选)</label>
+      <input type="url" id="newLink" placeholder="https:// ..." autocomplete="off">
+    </div>
+    <div class="input-group">
+      <label><i class="fa-solid fa-tag"></i> 品牌 (可选)</label>
+      <input type="text" id="newBrand" placeholder="品牌名称" autocomplete="off">
+    </div>
+    <div class="input-group">
+      <label><i class="fa-solid fa-ruler"></i> 尺寸 (可选)</label>
+      <div style="display: flex; gap: 10px;">
+        <div style="flex: 1; position: relative;">
+          <input type="number" id="newLength" placeholder="长" step="0.1" min="0" style="width: 100%; padding-right: 25px;">
+          <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #64748b;">cm</span>
+        </div>
+        <div style="flex: 1; position: relative;">
+          <input type="number" id="newWidth" placeholder="宽" step="0.1" min="0" style="width: 100%; padding-right: 25px;">
+          <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #64748b;">cm</span>
+        </div>
+        <div style="flex: 1; position: relative;">
+          <input type="number" id="newHeight" placeholder="高" step="0.1" min="0" style="width: 100%; padding-right: 25px;">
+          <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #64748b;">cm</span>
+        </div>
+      </div>
+    </div>
+    <div class="input-group">
+      <label><i class="fa-solid fa-image"></i> 图示 (可选)</label>
+      <input type="url" id="newImage" placeholder="图片URL" autocomplete="off">
+    </div>
+    <div class="input-group">
+      <label><i class="fa-solid fa-sticky-note"></i> 备注 (可选)</label>
+      <textarea id="newNotes" placeholder="备注信息" rows="3"></textarea>
+    </div>
+    <div class="card-actions">
+      <button class="btn-save" id="saveProductBtn"><i class="fa-regular fa-floppy-disk"></i> 保存</button>
+      <button class="btn-text" id="cancelAddBtn">取消</button>
+    </div>
+  </div>
+
+  <!-- 编辑模态框 -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>编辑商品</h3>
+        <button class="modal-close" onclick="closeEditModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editProductId">
+        <div class="input-group">
+          <label><i class="fa-regular fa-pen-to-square"></i> 商品名称</label>
+          <input type="text" id="editProductName" placeholder="商品名称" autocomplete="off">
+        </div>
+        <div class="input-group">
+          <label><i class="fa-solid fa-link"></i> 平台链接 (可选)</label>
+          <input type="url" id="editProductLink" placeholder="https:// ..." autocomplete="off">
+        </div>
+        <div class="input-group">
+          <label><i class="fa-solid fa-tag"></i> 品牌 (可选)</label>
+          <input type="text" id="editProductBrand" placeholder="品牌名称" autocomplete="off">
+        </div>
+        <div class="input-group">
+          <label><i class="fa-solid fa-ruler"></i> 尺寸 (可选)</label>
+          <div style="display: flex; gap: 10px;">
+            <div style="flex: 1; position: relative;">
+              <input type="number" id="editProductLength" placeholder="长" step="0.1" min="0" style="width: 100%; padding-right: 25px;">
+              <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #64748b;">cm</span>
+            </div>
+            <div style="flex: 1; position: relative;">
+              <input type="number" id="editProductWidth" placeholder="宽" step="0.1" min="0" style="width: 100%; padding-right: 25px;">
+              <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #64748b;">cm</span>
+            </div>
+            <div style="flex: 1; position: relative;">
+              <input type="number" id="editProductHeight" placeholder="高" step="0.1" min="0" style="width: 100%; padding-right: 25px;">
+              <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #64748b;">cm</span>
+            </div>
+          </div>
+        </div>
+        <div class="input-group">
+          <label><i class="fa-solid fa-image"></i> 图示 (可选)</label>
+          <input type="url" id="editProductImage" placeholder="图片URL" autocomplete="off">
+        </div>
+        <div class="input-group">
+          <label><i class="fa-solid fa-sticky-note"></i> 备注 (可选)</label>
+          <textarea id="editProductNotes" placeholder="备注信息" rows="3"></textarea>
+        </div>
+        <div class="card-actions" style="margin-top: 20px;">
+          <button class="btn-save" onclick="saveProductEdit()"><i class="fa-regular fa-floppy-disk"></i> 保存</button>
+          <button class="btn-text" onclick="closeEditModal()">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 商品垂直列表容器 -->
+  <div id="productsList" class="products-list"></div>
+
+  <div class="footer-note">
+    <i class="fa-regular fa-circle-check"></i> 点击图标勾选 · 链接即填即存
+  </div>
+</div>
+
+<script>
+  (function() {
+    // 获取当前登录的业主ID
+    const currentOwnerId = localStorage.getItem('currentOwnerId');
+    
+    // 如果没有登录业主ID，跳转到登录页面
+    if (!currentOwnerId) {
+      window.location.href = '登录.html';
+      return;
+    }
+
+    // 验证业主ID是否存在
+    const ownerCredentials = JSON.parse(localStorage.getItem('ownerCredentials')) || {};
+    if (!ownerCredentials[currentOwnerId]) {
+      localStorage.removeItem('currentOwnerId');
+      window.location.href = '登录.html';
+      return;
+    }
+
+    // --- 商品数据 (包含 link 字段) ---
+    let allProducts = JSON.parse(localStorage.getItem('products')) || {};
+    // 确保当前业主的数据存在
+    if (!allProducts[currentOwnerId]) {
+      allProducts[currentOwnerId] = [];
+      localStorage.setItem('products', JSON.stringify(allProducts));
+    }
+    let products = allProducts[currentOwnerId];
+
+    // 保存数据到 localStorage
+    function saveData() {
+      allProducts[currentOwnerId] = products;
+      localStorage.setItem('products', JSON.stringify(allProducts));
+    }
+
+    // --- DOM 元素 ---
+    const listContainer = document.getElementById('productsList');
+    const addCard = document.getElementById('addCard');
+    const addBtn = document.getElementById('addProductBtn');
+    const cancelAdd = document.getElementById('cancelAddBtn');
+    const saveBtn = document.getElementById('saveProductBtn');
+    const newName = document.getElementById('newName');
+    const newLink = document.getElementById('newLink');
+    const selectedSpan = document.getElementById('selectedCount');
+
+    // 显示当前业主ID
+    document.getElementById('currentOwnerId').textContent = currentOwnerId;
+
+    // 退出登录
+    window.logout = function() {
+      if (confirm('确定要退出登录吗？')) {
+        localStorage.removeItem('currentOwnerId');
+        window.location.href = '登录.html';
+      }
+    };
+
+    // --- 辅助: 决定图标 (根据商品名称) ---
+    function getProductIcon(name) {
+      if (name.includes('毯') || name.includes('抱枕')) return 'fa-solid fa-blanket';
+      if (name.includes('几') || name.includes('桌')) return 'fa-solid fa-table';
+      if (name.includes('灯')) return 'fa-regular fa-lightbulb';
+      if (name.includes('陶瓷') || name.includes('花器')) return 'fa-solid fa-vase';
+      if (name.includes('盒') || name.includes('收纳')) return 'fa-regular fa-box';
+      return 'fa-regular fa-cube';
+    }
+
+    // --- 渲染垂直列表 ---
+    function renderList() {
+      if (!listContainer) return;
+      console.log('开始渲染列表，商品数量:', products.length);
+
+      if (products.length === 0) {
+        listContainer.innerHTML = `<div class="empty-message"><i class="fa-regular fa-folder-open"></i><br />暂无商品，请添加</div>`;
+        updateSelectedCount();
+        return;
+      }
+
+      let htmlStr = '';
+      products.forEach(prod => {
+        // 勾选图标: 选中实心勾选圆，未选中空心圆
+        const checkIcon = prod.checked ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle';
+        // 商品图标 (装饰用，可选)
+        const decorIcon = getProductIcon(prod.name);
+
+        // 构建商品详情HTML
+        let detailsHtml = '';
+        if (prod.brand || prod.size.length || prod.size.width || prod.size.height || prod.image || prod.notes) {
+          detailsHtml = `
+            <div class="product-details">
+              ${prod.brand ? `<div class="detail-item"><span class="detail-label">品牌:</span> ${prod.brand}</div>` : ''}
+              ${(prod.size.length || prod.size.width || prod.size.height) ? `
+                <div class="detail-item">
+                  <span class="detail-label">尺寸:</span> 
+                  ${prod.size.length ? `长 ${prod.size.length}cm` : ''}
+                  ${prod.size.width ? ` × 宽 ${prod.size.width}cm` : ''}
+                  ${prod.size.height ? ` × 高 ${prod.size.height}cm` : ''}
+                </div>
+              ` : ''}
+              ${prod.image ? `<div class="detail-item"><img src="${prod.image}" class="product-image" alt="商品图示" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22150%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20150%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_15e8a24c914%20text%20%7B%20fill%3Argba(206%2C217%2C224%2C.5)%3Bfont-weight%3Anormal%3Bfont-family%3AHelvetica%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_15e8a24c914%22%3E%3Crect%20width%3D%22200%22%20height%3D%22150%22%20fill%3D%22%23F8F8F8%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2274%22%20y%3D%2281%22%3E图片加载失败%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E';"></div>` : ''}
+              ${prod.notes ? `<div class="detail-item"><span class="detail-label">备注:</span> ${prod.notes}</div>` : ''}
+            </div>
+          `;
+        }
+
+        htmlStr += `
+          <div class="list-item" data-product-id="${prod.id}">
+            <div class="item-row">
+              <!-- 勾选图标（同时也是切换按钮） -->
+              <i class="check-icon ${checkIcon}" data-product-id="${prod.id}" role="button" aria-label="切换勾选"></i>
+              <!-- 商品名称 -->
+              <span class="product-name" title="${prod.name}">${prod.name}</span>
+              <!-- 编辑按钮 -->
+              <button class="edit-btn" aria-label="编辑商品" onclick="openEditModal(${prod.id})"><i class="fa-regular fa-pen-to-square"></i></button>
+              <!-- 删除按钮 -->
+              <button class="delete-btn" aria-label="删除商品"><i class="fa-regular fa-trash-can"></i></button>
+            </div>
+            <div class="link-row">
+              <i class="fa-solid fa-link"></i>
+              <!-- 链接输入框，保存商品id，用于更新 -->
+              <input type="url" class="link-input" data-link-for="${prod.id}" value="${prod.link.replace(/"/g, '&quot;')}" placeholder="粘贴购物平台链接 (可选)">
+              ${prod.link ? `<button class="open-link-btn" onclick="window.open('${prod.link}', '_blank')" aria-label="在新窗口打开链接"><i class="fa-solid fa-paper-plane"></i></button>` : ''}
+            </div>
+            ${detailsHtml}
+          </div>
+        `;
+      });
+
+      listContainer.innerHTML = htmlStr;
+      updateSelectedCount();
+    }
+
+    // --- 更新选中数量 ---
+    function updateSelectedCount() {
+      const checkedTotal = products.filter(p => p.checked).length;
+      selectedSpan.textContent = checkedTotal;
+    }
+
+    // --- 切换勾选状态 ---
+    function toggleCheck(productId) {
+      const product = products.find(p => p.id === productId);
+      if (product) {
+        product.checked = !product.checked;
+        product.updatedAt = new Date().toISOString();
+        saveData();
+        renderList();  // 重新渲染以更新勾选图标
+      }
+    }
+
+    // --- 更新商品链接 (由输入框的input事件触发) ---
+    function updateProductLink(productId, newLink) {
+      const product = products.find(p => p.id === productId);
+      if (product) {
+        product.link = newLink;
+        product.updatedAt = new Date().toISOString();
+        saveData();
+        // 不需要重新渲染，只更新数据，保持输入框状态。但为了其他联动可以不重绘
+        // 但是我们使用了渲染完全替换，如果每次输入都重绘会导致输入框失焦。
+        // 因此需要避免在input事件中重新渲染。改为仅更新数据，不重新渲染。
+        // 但是输入框的值受用户控制，我们只需要保存数据，无需重绘。
+        // 然而如果其他操作导致重绘，会从product.link恢复。
+        // 所以这里只更新数据，不调用renderList。
+      }
+    }
+
+    // --- 删除商品 ---
+    function deleteProduct(productId) {
+      products = products.filter(p => p.id !== productId);
+      saveData();
+      renderList();
+    }
+
+    // --- 隐藏新增卡片并清空输入 ---
+    function resetAndHideAddCard() {
+      addCard.classList.add('hidden');
+      newName.value = '';
+      newLink.value = '';
+      document.getElementById('newBrand').value = '';
+      document.getElementById('newLength').value = '';
+      document.getElementById('newWidth').value = '';
+      document.getElementById('newHeight').value = '';
+      document.getElementById('newImage').value = '';
+      document.getElementById('newNotes').value = '';
+    }
+
+    // --- 保存新商品 (名称 + 可选链接) ---
+    function addNewProduct() {
+      const name = newName.value.trim();
+      if (!name) {
+        alert('请填写商品名称');
+        return;
+      }
+
+      const link = newLink.value.trim();  // 可能为空
+      const brand = document.getElementById('newBrand').value.trim();
+      const length = document.getElementById('newLength').value.trim();
+      const width = document.getElementById('newWidth').value.trim();
+      const height = document.getElementById('newHeight').value.trim();
+      const image = document.getElementById('newImage').value.trim();
+      const notes = document.getElementById('newNotes').value.trim();
+
+      const newId = Date.now() + Math.floor(Math.random() * 1000);
+      const now = new Date();
+      products.push({
+        id: newId,
+        name: name,
+        link: link,
+        checked: false,
+        updatedAt: now.toISOString(),
+        brand: brand,
+        size: { length: length, width: width, height: height },
+        image: image,
+        notes: notes
+      });
+      saveData();
+      renderList();
+      resetAndHideAddCard();
+    }
+
+    // --- 事件监听 (代理) ---
+    // 由于输入框需要实时保存，我们监听input事件，但避免重新渲染。
+    listContainer.addEventListener('input', function(e) {
+      const target = e.target;
+      if (target.classList.contains('link-input')) {
+        const productId = Number(target.dataset.linkFor);
+        if (!isNaN(productId)) {
+          updateProductLink(productId, target.value);
+          
+          // 动态显示或隐藏飞机图标按钮
+          const linkValue = target.value.trim();
+          const linkRow = target.closest('.link-row');
+          let openLinkBtn = linkRow.querySelector('.open-link-btn');
+          
+          if (linkValue) {
+            if (!openLinkBtn) {
+              // 创建新的飞机图标按钮
+              openLinkBtn = document.createElement('button');
+              openLinkBtn.className = 'open-link-btn';
+              openLinkBtn.onclick = function() {
+                window.open(linkValue, '_blank');
+              };
+              openLinkBtn.setAttribute('aria-label', '在新窗口打开链接');
+              openLinkBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i>';
+              linkRow.appendChild(openLinkBtn);
+            } else {
+              // 更新按钮的onclick事件，确保使用最新的链接
+              openLinkBtn.onclick = function() {
+                window.open(linkValue, '_blank');
+              };
+            }
+          } else if (openLinkBtn) {
+            // 如果链接为空，移除飞机图标按钮
+            openLinkBtn.remove();
+          }
+        }
+      }
+    });
+
+    // 点击事件（勾选图标、删除按钮）
+    listContainer.addEventListener('click', function(e) {
+      const target = e.target;
+
+      // 勾选图标
+      if (target.classList.contains('check-icon')) {
+        e.preventDefault();
+        e.stopPropagation();
+        const prodId = Number(target.dataset.productId);
+        toggleCheck(prodId);
+        return;
+      }
+
+      // 删除按钮
+      const deleteBtn = target.closest('.delete-btn');
+      if (deleteBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const listItem = deleteBtn.closest('.list-item');
+        if (!listItem) return;
+        const prodId = Number(listItem.dataset.productId);
+        if (confirm('移除此商品？')) {
+          deleteProduct(prodId);
+        }
+        return;
+      }
+    });
+
+    // 新增卡片控制
+    addBtn.addEventListener('click', function() {
+      addCard.classList.toggle('hidden');
+      if (!addCard.classList.contains('hidden')) {
+        newName.focus();
+      }
+    });
+
+    cancelAdd.addEventListener('click', resetAndHideAddCard);
+
+    saveBtn.addEventListener('click', addNewProduct);
+
+    // 回车保存
+    newName.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addNewProduct();
+      }
+    });
+    newLink.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addNewProduct();
+      }
+    });
+
+    // 点击外部关闭卡片
+    document.addEventListener('click', function(e) {
+      if (!addCard.classList.contains('hidden') && 
+          !addCard.contains(e.target) && 
+          !addBtn.contains(e.target)) {
+        resetAndHideAddCard();
+      }
+    });
+    addCard.addEventListener('click', (e) => e.stopPropagation());
+
+    // 编辑功能
+    window.openEditModal = function(productId) {
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
+
+      // 填充表单数据
+      document.getElementById('editProductId').value = product.id;
+      document.getElementById('editProductName').value = product.name;
+      document.getElementById('editProductLink').value = product.link || '';
+      document.getElementById('editProductBrand').value = product.brand || '';
+      document.getElementById('editProductLength').value = product.size?.length || '';
+      document.getElementById('editProductWidth').value = product.size?.width || '';
+      document.getElementById('editProductHeight').value = product.size?.height || '';
+      document.getElementById('editProductImage').value = product.image || '';
+      document.getElementById('editProductNotes').value = product.notes || '';
+
+      // 显示模态框
+      document.getElementById('editModal').classList.add('show');
+    };
+
+    window.closeEditModal = function() {
+      document.getElementById('editModal').classList.remove('show');
+    };
+
+    window.saveProductEdit = function() {
+      const productId = parseInt(document.getElementById('editProductId').value);
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
+
+      // 更新商品数据
+      product.name = document.getElementById('editProductName').value.trim();
+      product.link = document.getElementById('editProductLink').value.trim();
+      product.brand = document.getElementById('editProductBrand').value.trim();
+      product.size = {
+        length: document.getElementById('editProductLength').value.trim(),
+        width: document.getElementById('editProductWidth').value.trim(),
+        height: document.getElementById('editProductHeight').value.trim()
+      };
+      
+      // 验证并保存图片URL
+      const imageUrl = document.getElementById('editProductImage').value.trim();
+      product.image = imageUrl;
+      
+      product.notes = document.getElementById('editProductNotes').value.trim();
+      product.updatedAt = new Date().toISOString();
+
+      // 保存数据并重新渲染
+      saveData();
+      console.log('保存商品编辑，图片URL:', product.image);
+      renderList();
+      closeEditModal();
+    };
+
+    // 点击模态框外部关闭
+    document.getElementById('editModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeEditModal();
+      }
+    });
+
+    // 初始化渲染
+    console.log('初始化渲染，当前业主ID:', currentOwnerId);
+    console.log('当前业主商品数量:', products.length);
+    products.forEach((prod, index) => {
+      console.log(`商品 ${index}:`, prod);
+      if (prod.image) {
+        console.log(`商品 ${index} 图片URL:`, prod.image);
+      }
+    });
+    renderList();
+  })();
+</script>
+</body>
+</html>
